@@ -1,4 +1,5 @@
 extern crate time;
+extern crate image;
 #[macro_use]
 extern crate gfx;
 extern crate gfx_core;
@@ -8,25 +9,26 @@ extern crate glutin;
 
 use gfx::Device;
 use gfx::traits::FactoryExt;
-use gfx_core::format::{DepthStencil, Rgba8};
+use gfx_core::format::{DepthStencil, Rgba8, Srgba8};
 
-gfx_defines!{
-    vertex Vertex {
-        pos: [f32; 2] = "a_Pos",
-        color: [f32; 3] = "a_Color",
-    }
+gfx_vertex_struct!( Vertex {
+    pos: [f32; 2] = "a_Pos",
+    color: [f32; 2] = "a_Color",
+});
 
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-        out: gfx::RenderTarget<Rgba8> = "Target0",
+impl Vertex {
+    fn new(p: [f32; 2], c: [f32; 2]) -> Vertex {
+        Vertex {
+            pos: p,
+            color: c,
+        }
     }
 }
 
-const TRIANGLE: [Vertex; 3] = [
-    Vertex { pos: [ -0.5, -0.5 ], color: [1.0, 0.1, 0.1] },
-    Vertex { pos: [  0.5, -0.5 ], color: [0.1, 1.0, 0.1] },
-    Vertex { pos: [  0.0,  0.5 ], color: [0.1, 0.1, 1.0] }
-];
+gfx_pipeline!( pipe {
+    vbuf: gfx::VertexBuffer<Vertex> = (),
+    out: gfx::RenderTarget<Srgba8> = "Target0",
+});
 
 const CLEAR_COLOR: [f32; 4] = [0.02, 0.02, 0.02, 1.0];
 
@@ -42,7 +44,7 @@ fn main()
     let context = glutin::ContextBuilder::new();
 
     let (window, mut device, mut factory, rtv, _stv) =
-        gfx_window_glutin::init::<Rgba8, DepthStencil>(window_builder, context, &events_loop)
+        gfx_window_glutin::init::<Srgba8, DepthStencil>(window_builder, context, &events_loop)
         .expect("Failed!");
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
 
@@ -52,7 +54,17 @@ fn main()
         pipe::new()
     ).unwrap();
 
-    let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
+    let vertex_data = [
+        Vertex::new([-0.4, -0.4], [0.0, 0.4]),
+        Vertex::new([ 0.4, -0.4], [0.4, 0.4]),
+        Vertex::new([ 0.4,  0.4], [0.4, 0.0]),
+
+        Vertex::new([-0.4, -0.4], [0.0, 0.4]),
+        Vertex::new([ 0.4,  0.4], [0.4, 0.0]),
+        Vertex::new([-0.4,  0.4], [0.0, 0.0]),
+    ];
+
+    let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&vertex_data, ());
     let data = pipe::Data {
         vbuf: vertex_buffer,
         out: rtv
