@@ -36,9 +36,9 @@ fn main()
 {
     let mut events_loop = glutin::EventsLoop::new();
 
-    let window_size = glutin::dpi::LogicalSize::new(1024.0, 768.0);
+    let window_size = glutin::dpi::LogicalSize::new(768.0, 768.0);
     let window_builder = glutin::WindowBuilder::new()
-        .with_title("Triangle example")
+        .with_title("Darkness")
         .with_dimensions(window_size);
 
     let context = glutin::ContextBuilder::new();
@@ -49,8 +49,8 @@ fn main()
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
 
     let pso = factory.create_pipeline_simple(
-        include_bytes!("../shader/triangle_150.glslv"),
-        include_bytes!("../shader/triangle_150.glslf"),
+        include_bytes!("../shader/simple_150.glslv"),
+        include_bytes!("../shader/simple_150.glslf"),
         pipe::new()
     ).unwrap();
 
