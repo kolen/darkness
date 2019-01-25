@@ -1,0 +1,13 @@
+[package]
+name = "darkness"
+version = "0.1.1"
+authors = ["cawcaw <dmitrygrach@gmail.com>"]
+
+[dependencies]
+time = "0.1.42"
+gfx = "0.17.1"
+gfx_core = "0.8.3"
+gfx_device_gl = "0.15.5"
+glfw = "0.26.1"
+glutin = "0.19.0"
+gfx_window_glutin = "0.28.0"
