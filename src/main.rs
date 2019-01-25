@@ -37,6 +37,7 @@ fn main()
     let mut events_loop = glutin::EventsLoop::new();
 
     let window_size = glutin::dpi::LogicalSize::new(768.0, 768.0);
+
     let window_builder = glutin::WindowBuilder::new()
         .with_title("Darkness")
         .with_dimensions(window_size);
@@ -65,13 +66,14 @@ fn main()
     ];
 
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&vertex_data, ());
+
     let data = pipe::Data {
         vbuf: vertex_buffer,
         out: rtv
     };
 
-
     let mut running = true;
+
     while running
     {
         events_loop.poll_events(|event| {
@@ -82,6 +84,10 @@ fn main()
                         Some(glutin::VirtualKeyCode::Escape) => running = false,
                         _ => (),
                     }
+                },
+                glutin::WindowEvent::Resized(logical_size) => {
+                    let dpi_factor = window.get_hidpi_factor();
+                    window.resize(logical_size.to_physical(dpi_factor));
                 },
                 _ => (),
               },
