@@ -45,14 +45,17 @@ gfx_pipeline!( pipe {
 const CLEAR_COLOR: [f32; 4] = [0.02, 0.02, 0.02, 1.0];
 
 fn load_texture<R, F>(factory: &mut F, data: &[u8])
-                -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String> where
-                R: gfx::Resources, F: gfx::Factory<R> {
+                -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String>
+                where R: gfx::Resources, F: gfx::Factory<R>
+{
     use std::io::Cursor;
     use gfx::texture as t;
     let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
     let (width, height) = img.dimensions();
     let kind = t::Kind::D2(width as t::Size, height as t::Size, t::AaMode::Single);
-    let (_, view) = factory.create_texture_immutable_u8::<Rgba8>(kind, t::Mipmap::Provided, &[&img]).unwrap();
+    let (_, view) = factory
+        .create_texture_immutable_u8::<Rgba8>(kind, t::Mipmap::Provided, &[&img])
+        .unwrap();
     Ok(view)
 }
 
@@ -117,7 +120,8 @@ fn main()
     ];
 
     let dif_texture = load_texture(&mut factory, &include_bytes!("../res/wall.png")[..]).unwrap();
-    let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&vertex_data, index_data);
+    let (vertex_buffer, slice) = factory
+        .create_vertex_buffer_with_slice(&vertex_data, index_data);
     let sampler = factory.create_sampler_linear();
 
     let view = Matrix4::look_at(
