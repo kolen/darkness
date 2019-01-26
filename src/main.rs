@@ -38,6 +38,8 @@ gfx_pipeline!( pipe {
     transform: gfx::Global<[[f32; 4]; 4]> = "u_Transform",
     dif: gfx::TextureSampler<[f32; 4]> = "t_Dif",
     out: gfx::RenderTarget<Srgba8> = "Target0",
+    out_depth: gfx::DepthTarget<DepthStencil> =
+        gfx::preset::depth::LESS_EQUAL_WRITE,
 });
 
 const CLEAR_COLOR: [f32; 4] = [0.02, 0.02, 0.02, 1.0];
@@ -62,7 +64,7 @@ fn main()
         .with_title("Darkness")
         .with_dimensions(window_size);
     let context = glutin::ContextBuilder::new();
-    let (window, mut device, mut factory, rtv, _stv) =
+    let (window, mut device, mut factory, rtv, stv) =
         gfx_window_glutin::init::<Srgba8, DepthStencil>(window_builder, context, &events_loop)
         .expect("Failed!");
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
@@ -129,7 +131,8 @@ fn main()
         vbuf: vertex_buffer,
         transform: (proj * view).into(),
         dif: (dif_texture, sampler),
-        out: rtv
+        out: rtv,
+        out_depth: stv,
     };
 
     let mut running = true;
@@ -155,6 +158,7 @@ fn main()
         });
 
         encoder.clear(&data.out, CLEAR_COLOR);
+        encoder.clear_depth(&data.out_depth, 1.0);
         encoder.draw(&slice, &pso, &data);
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
