@@ -125,7 +125,7 @@ fn main()
         Point3::new(0f32, 0.0, 0.0),
         Vector3::unit_z(),
     );
-    let proj = cgmath::perspective(cgmath::Deg(45.0f32), 1.33, 1.0, 10.0);
+    let proj = cgmath::perspective(cgmath::Deg(50.0f32), 1.33, 1.0, 10.0);
 
     let data = pipe::Data {
         vbuf: vertex_buffer,
