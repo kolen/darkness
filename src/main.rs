@@ -114,7 +114,7 @@ fn main()
         20, 21, 22, 22, 23, 20, // back
     ];
 
-    let dif_texture = load_texture(&mut factory, &include_bytes!("../res/concrete.png")[..]).unwrap();
+    let dif_texture = load_texture(&mut factory, &include_bytes!("../res/wall.png")[..]).unwrap();
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&vertex_data, index_data);
     let sampler = factory.create_sampler_linear();
 
