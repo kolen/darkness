@@ -67,8 +67,8 @@ fn main()
         .expect("Failed!");
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
     let pso = factory.create_pipeline_simple(
-        include_bytes!("../shader/simple_150.glslv"),
-        include_bytes!("../shader/simple_150.glslf"),
+        include_bytes!("../shader/vert.glsl"),
+        include_bytes!("../shader/frag.glsl"),
         pipe::new()
     ).unwrap();
 
