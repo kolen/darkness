@@ -59,7 +59,7 @@ fn load_texture<R, F>(factory: &mut F, data: &[u8])
 fn main()
 {
     let mut events_loop = glutin::EventsLoop::new();
-    let window_size = glutin::dpi::LogicalSize::new(768.0, 768.0);
+    let window_size = glutin::dpi::LogicalSize::new(1024.0, 768.0);
     let window_builder = glutin::WindowBuilder::new()
         .with_title("Darkness")
         .with_dimensions(window_size);
@@ -125,7 +125,7 @@ fn main()
         Point3::new(0f32, 0.0, 0.0),
         Vector3::unit_z(),
     );
-    let proj = cgmath::perspective(cgmath::Deg(45.0f32), 1.0, 1.0, 10.0);
+    let proj = cgmath::perspective(cgmath::Deg(45.0f32), 1.33, 1.0, 10.0);
 
     let data = pipe::Data {
         vbuf: vertex_buffer,
