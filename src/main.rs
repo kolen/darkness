@@ -1,5 +1,7 @@
 extern crate time;
 extern crate image;
+extern crate cgmath;
+
 #[macro_use]
 extern crate gfx;
 extern crate gfx_core;
@@ -11,22 +13,29 @@ use gfx::Device;
 use gfx::traits::FactoryExt;
 use gfx_core::format::{DepthStencil, Rgba8, Srgba8};
 
+use cgmath::{Point3, Vector3, Matrix4};
+
 gfx_vertex_struct!( Vertex {
-    pos: [f32; 2] = "a_Pos",
+    pos: [f32; 4] = "a_Pos",
     uv: [f32; 2] = "a_Uv",
 });
 
 impl Vertex {
-    fn new(p: [f32; 2], u: [f32; 2]) -> Vertex {
+    fn new(p: [f32; 3], u: [f32; 2]) -> Vertex {
         Vertex {
-            pos: p,
+            pos: [p[0], p[1], p[2], 1.0],
             uv: u,
         }
     }
 }
 
+gfx_constant_struct!( Locals {
+    transform: [[f32; 4]; 4] = "u_Transform",
+});
+
 gfx_pipeline!( pipe {
     vbuf: gfx::VertexBuffer<Vertex> = (),
+    transform: gfx::Global<[[f32; 4]; 4]> = "u_Transform",
     dif: gfx::TextureSampler<[f32; 4]> = "t_Dif",
     out: gfx::RenderTarget<Srgba8> = "Target0",
 });
@@ -64,20 +73,61 @@ fn main()
     ).unwrap();
 
     let vertex_data = [
-        Vertex::new([-0.4, -0.4], [0.0, 0.4]),
-        Vertex::new([ 0.4, -0.4], [0.4, 0.4]),
-        Vertex::new([ 0.4,  0.4], [0.4, 0.0]),
+        // top (0, 0, 1.0)
+        Vertex::new([-1.0, -1.0,  1.0], [0.0, 0.0]),
+        Vertex::new([ 1.0, -1.0,  1.0], [1.0, 0.0]),
+        Vertex::new([ 1.0,  1.0,  1.0], [1.0, 1.0]),
+        Vertex::new([-1.0,  1.0,  1.0], [0.0, 1.0]),
+        // bottom (0.0, 0.0, -1.0)
+        Vertex::new([-1.0,  1.0, -1.0], [1.0, 0.0]),
+        Vertex::new([ 1.0,  1.0, -1.0], [0.0, 0.0]),
+        Vertex::new([ 1.0, -1.0, -1.0], [0.0, 1.0]),
+        Vertex::new([-1.0, -1.0, -1.0], [1.0, 1.0]),
+        // right (1.0, 0.0, 0.0)
+        Vertex::new([ 1.0, -1.0, -1.0], [0.0, 0.0]),
+        Vertex::new([ 1.0,  1.0, -1.0], [1.0, 0.0]),
+        Vertex::new([ 1.0,  1.0,  1.0], [1.0, 1.0]),
+        Vertex::new([ 1.0, -1.0,  1.0], [0.0, 1.0]),
+        // left (-1.0, 0.0, 0.0)
+        Vertex::new([-1.0, -1.0,  1.0], [1.0, 0.0]),
+        Vertex::new([-1.0,  1.0,  1.0], [0.0, 0.0]),
+        Vertex::new([-1.0,  1.0, -1.0], [0.0, 1.0]),
+        Vertex::new([-1.0, -1.0, -1.0], [1.0, 1.0]),
+        // front (0.0, 1.0, 0.0)
+        Vertex::new([ 1.0,  1.0, -1.0], [1.0, 0.0]),
+        Vertex::new([-1.0,  1.0, -1.0], [0.0, 0.0]),
+        Vertex::new([-1.0,  1.0,  1.0], [0.0, 1.0]),
+        Vertex::new([ 1.0,  1.0,  1.0], [1.0, 1.0]),
+        // back (0.0, -1.0, 0.0)
+        Vertex::new([ 1.0, -1.0,  1.0], [0.0, 0.0]),
+        Vertex::new([-1.0, -1.0,  1.0], [1.0, 0.0]),
+        Vertex::new([-1.0, -1.0, -1.0], [1.0, 1.0]),
+        Vertex::new([ 1.0, -1.0, -1.0], [0.0, 1.0]),
+    ];
 
-        Vertex::new([-0.4, -0.4], [0.0, 0.4]),
-        Vertex::new([ 0.4,  0.4], [0.4, 0.0]),
-        Vertex::new([-0.4,  0.4], [0.0, 0.0]),
+    let index_data: &[u16] = &[
+         0,  1,  2,  2,  3,  0, // top
+         4,  5,  6,  6,  7,  4, // bottom
+         8,  9, 10, 10, 11,  8, // right
+        12, 13, 14, 14, 15, 12, // left
+        16, 17, 18, 18, 19, 16, // front
+        20, 21, 22, 22, 23, 20, // back
     ];
 
     let dif_texture = load_texture(&mut factory, &include_bytes!("../res/concrete.png")[..]).unwrap();
-    let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&vertex_data, ());
+    let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&vertex_data, index_data);
     let sampler = factory.create_sampler_linear();
+
+    let view = Matrix4::look_at(
+        Point3::new(1.5f32, -5.0, 3.0),
+        Point3::new(0f32, 0.0, 0.0),
+        Vector3::unit_z(),
+    );
+    let proj = cgmath::perspective(cgmath::Deg(45.0f32), 1.0, 1.0, 10.0);
+
     let data = pipe::Data {
         vbuf: vertex_buffer,
+        transform: (proj * view).into(),
         dif: (dif_texture, sampler),
         out: rtv
     };
