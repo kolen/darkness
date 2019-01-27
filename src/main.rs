@@ -141,7 +141,12 @@ fn main()
 
     let mut x = 5f32;
     let mut y = 5f32;
-    let sensetivity = 0.2f32;
+    let sensetivity = 0.02f32;
+
+    let mut pressed_w = false;
+    let mut pressed_a = false;
+    let mut pressed_s = false;
+    let mut pressed_d = false;
 
     let mut running = true;
     while running
@@ -152,10 +157,30 @@ fn main()
                 glutin::WindowEvent::KeyboardInput { input, .. } => {
                     match input.virtual_keycode {
                         Some(glutin::VirtualKeyCode::Escape) => running = false,
-                        Some(glutin::VirtualKeyCode::W) => y = y - sensetivity,
-                        Some(glutin::VirtualKeyCode::S) => y = y + sensetivity,
-                        Some(glutin::VirtualKeyCode::A) => x = x + sensetivity,
-                        Some(glutin::VirtualKeyCode::D) => x = x - sensetivity,
+                        Some(glutin::VirtualKeyCode::W) => {
+                            match input.state {
+                                glutin::ElementState::Pressed => pressed_w = true,
+                                glutin::ElementState::Released => pressed_w = false,
+                            }
+                        },
+                        Some(glutin::VirtualKeyCode::A) => {
+                            match input.state {
+                                glutin::ElementState::Pressed => pressed_a = true,
+                                glutin::ElementState::Released => pressed_a = false,
+                            }
+                        },
+                        Some(glutin::VirtualKeyCode::S) => {
+                            match input.state {
+                                glutin::ElementState::Pressed => pressed_s = true,
+                                glutin::ElementState::Released => pressed_s = false,
+                            }
+                        },
+                        Some(glutin::VirtualKeyCode::D) => {
+                            match input.state {
+                                glutin::ElementState::Pressed => pressed_d = true,
+                                glutin::ElementState::Released => pressed_d = false,
+                            }
+                        },
                         _ => (),
                     }
                 },
@@ -169,14 +194,17 @@ fn main()
             }
         });
 
+        if pressed_w { x = x - sensetivity }
+        if pressed_a { y = y - sensetivity }
+        if pressed_s { x = x + sensetivity }
+        if pressed_d { y = y + sensetivity }
+
         view = Matrix4::look_at(
             Point3::new(x, y, 0f32),
             Point3::new(0f32, 0.0, 0.0),
             Vector3::unit_z(),
         );
         data.transform = (proj * view).into();
-
-        println!("{:?}", data.transform);
 
         encoder.clear(&data.out, CLEAR_COLOR);
         encoder.clear_depth(&data.out_depth, 1.0);
