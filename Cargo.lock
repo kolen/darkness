@@ -201,7 +201,7 @@ dependencies = [
 
 [[package]]
 name = "darkness"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "cgmath 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx 0.17.1 (registry+https://github.com/rust-lang/crates.io-index)",

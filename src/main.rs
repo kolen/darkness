@@ -124,14 +124,14 @@ fn main()
         .create_vertex_buffer_with_slice(&vertex_data, index_data);
     let sampler = factory.create_sampler_linear();
 
-    let view = Matrix4::look_at(
+    let mut view = Matrix4::look_at(
         Point3::new(1.5f32, -5.0, 3.0),
         Point3::new(0f32, 0.0, 0.0),
         Vector3::unit_z(),
     );
     let proj = cgmath::perspective(cgmath::Deg(50.0f32), 1.33, 1.0, 10.0);
 
-    let data = pipe::Data {
+    let mut data = pipe::Data {
         vbuf: vertex_buffer,
         transform: (proj * view).into(),
         dif: (dif_texture, sampler),
@@ -160,6 +160,16 @@ fn main()
               _ => (),
             }
         });
+
+        let v = (((time::now().tm_sec % 2000) as f32) / 25.0);
+        view = Matrix4::look_at(
+            Point3::new(1.5f32, v - 5.0, v),
+            Point3::new(0f32, 0.0, 0.0),
+            Vector3::unit_z(),
+        );
+        data.transform = (proj * view).into();
+
+        println!("{:?}", data.transform);
 
         encoder.clear(&data.out, CLEAR_COLOR);
         encoder.clear_depth(&data.out_depth, 1.0);
