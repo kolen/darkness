@@ -6,7 +6,8 @@ authors = ["cawcaw <dmitrygrach@gmail.com>"]
 [dependencies]
 time = "0.1.42"
 image = "0.21.0"
-cgmath = "*"
+cgmath = "0.17.0"
+edn = "*"
 gfx = "0.17.1"
 gfx_core = "0.8.3"
 gfx_device_gl = "0.15.5"

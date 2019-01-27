@@ -1,6 +1,7 @@
 extern crate time;
 extern crate image;
 extern crate cgmath;
+extern crate edn;
 
 #[macro_use]
 extern crate gfx;
@@ -8,6 +9,11 @@ extern crate gfx_core;
 extern crate gfx_device_gl;
 extern crate gfx_window_glutin;
 extern crate glutin;
+
+use std::fs::File;
+use std::io::prelude::*;
+use std::error::Error;
+use std::iter::Map;
 
 use gfx::Device;
 use gfx::traits::FactoryExt;
@@ -77,51 +83,40 @@ fn main()
         pipe::new()
     ).unwrap();
 
-    let vertex_data = [
-        // top (0, 0, 1.0)
-        Vertex::new([-1.0, -1.0,  1.0], [0.0, 0.0]),
-        Vertex::new([ 1.0, -1.0,  1.0], [1.0, 0.0]),
-        Vertex::new([ 1.0,  1.0,  1.0], [1.0, 1.0]),
-        Vertex::new([-1.0,  1.0,  1.0], [0.0, 1.0]),
-        // bottom (0.0, 0.0, -1.0)
-        Vertex::new([-1.0,  1.0, -1.0], [1.0, 0.0]),
-        Vertex::new([ 1.0,  1.0, -1.0], [0.0, 0.0]),
-        Vertex::new([ 1.0, -1.0, -1.0], [0.0, 1.0]),
-        Vertex::new([-1.0, -1.0, -1.0], [1.0, 1.0]),
-        // right (1.0, 0.0, 0.0)
-        Vertex::new([ 1.0, -1.0, -1.0], [0.0, 0.0]),
-        Vertex::new([ 1.0,  1.0, -1.0], [1.0, 0.0]),
-        Vertex::new([ 1.0,  1.0,  1.0], [1.0, 1.0]),
-        Vertex::new([ 1.0, -1.0,  1.0], [0.0, 1.0]),
-        // left (-1.0, 0.0, 0.0)
-        Vertex::new([-1.0, -1.0,  1.0], [1.0, 0.0]),
-        Vertex::new([-1.0,  1.0,  1.0], [0.0, 0.0]),
-        Vertex::new([-1.0,  1.0, -1.0], [0.0, 1.0]),
-        Vertex::new([-1.0, -1.0, -1.0], [1.0, 1.0]),
-        // front (0.0, 1.0, 0.0)
-        Vertex::new([ 1.0,  1.0, -1.0], [1.0, 0.0]),
-        Vertex::new([-1.0,  1.0, -1.0], [0.0, 0.0]),
-        Vertex::new([-1.0,  1.0,  1.0], [0.0, 1.0]),
-        Vertex::new([ 1.0,  1.0,  1.0], [1.0, 1.0]),
-        // back (0.0, -1.0, 0.0)
-        Vertex::new([ 1.0, -1.0,  1.0], [0.0, 0.0]),
-        Vertex::new([-1.0, -1.0,  1.0], [1.0, 0.0]),
-        Vertex::new([-1.0, -1.0, -1.0], [1.0, 1.0]),
-        Vertex::new([ 1.0, -1.0, -1.0], [0.0, 1.0]),
-    ];
+    let mut model_file = match File::open("assets/cube.model.edn") {
+        Err(why) => panic!("couldn't open: {}", why.description()),
+        Ok(file) => file,
+    };
+    let mut model_edn = String::new();
+    model_file.read_to_string(&mut model_edn);
 
-    let index_data: &[u16] = &[
-         0,  1,  2,  2,  3,  0, // top
-         4,  5,  6,  6,  7,  4, // bottom
-         8,  9, 10, 10, 11,  8, // right
-        12, 13, 14, 14, 15, 12, // left
-        16, 17, 18, 18, 19, 16, // front
-        20, 21, 22, 22, 23, 20, // back
-    ];
+    let mut vertices_data: &[f32];
+    let mut indices_data: &[f32];
+
+    let mut parser = edn::parser::Parser::new(&model_edn);
+    match parser.read() {
+      Some(dt) => match dt {
+          Ok(edn::Value::Map(model)) => {
+              match model[&edn::Value::Keyword("indices".into())] {
+                  edn::Value::Vector(indices) =>
+                      indices_data = indices
+                      .into_itter()
+                      .map(|x| x as f32),
+                  _ => (),
+              }
+              match model[&edn::Value::Keyword("vertices".into())] {
+                  edn::Value(vertices) => vertices_data = &vertices[..],
+                  _ => (),
+              }
+          },
+          _ => (),
+      },
+      None => {},
+    }
 
     let dif_texture = load_texture(&mut factory, &include_bytes!("../res/wall.png")[..]).unwrap();
     let (vertex_buffer, slice) = factory
-        .create_vertex_buffer_with_slice(&vertex_data, index_data);
+        .create_vertex_buffer_with_slice(vertices_data, indices_data);
     let sampler = factory.create_sampler_linear();
 
     let mut view = Matrix4::look_at(
