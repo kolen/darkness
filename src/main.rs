@@ -139,9 +139,10 @@ fn main()
         out_depth: stv,
     };
 
-    let mut x = 5f32;
-    let mut y = 5f32;
+    let mut x = 0f32;
+    let mut y = 0f32;
     let sensetivity = 0.02f32;
+    let distance = 4.0f32;
 
     let mut pressed_w = false;
     let mut pressed_a = false;
@@ -194,14 +195,14 @@ fn main()
             }
         });
 
-        if pressed_w { x = x - sensetivity }
-        if pressed_a { y = y - sensetivity }
-        if pressed_s { x = x + sensetivity }
-        if pressed_d { y = y + sensetivity }
+        if pressed_w { x = x + sensetivity }
+        if pressed_a { y = y + sensetivity }
+        if pressed_s { x = x - sensetivity }
+        if pressed_d { y = y - sensetivity }
 
         view = Matrix4::look_at(
-            Point3::new(x, y, 0f32),
-            Point3::new(0f32, 0.0, 0.0),
+            Point3::new(x + distance, y + distance, distance),
+            Point3::new(x, y, 0.0),
             Vector3::unit_z(),
         );
         data.transform = (proj * view).into();
@@ -211,7 +212,6 @@ fn main()
         encoder.draw(&slice, &pso, &data);
         encoder.flush(&mut device);
         window.swap_buffers().unwrap();
-        // println!("{:?}", time::now());
         device.cleanup();
     }
 }
