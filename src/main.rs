@@ -139,6 +139,8 @@ fn main()
         out_depth: stv,
     };
 
+    let mut y = 5f32;
+    let mut z = 5f32;
     let mut running = true;
     while running
     {
@@ -148,6 +150,10 @@ fn main()
                 glutin::WindowEvent::KeyboardInput { input, .. } => {
                     match input.virtual_keycode {
                         Some(glutin::VirtualKeyCode::Escape) => running = false,
+                        Some(glutin::VirtualKeyCode::W) => y = y + 0.1f32,
+                        Some(glutin::VirtualKeyCode::S) => y = y - 0.1f32,
+                        Some(glutin::VirtualKeyCode::A) => x = x + 0.1f32,
+                        Some(glutin::VirtualKeyCode::D) => x = x - 0.1f32,
                         _ => (),
                     }
                 },
@@ -161,9 +167,8 @@ fn main()
             }
         });
 
-        let v = (((time::now().tm_sec % 2000) as f32) / 25.0);
         view = Matrix4::look_at(
-            Point3::new(1.5f32, v - 5.0, v),
+            Point3::new(x, y, 0f32),
             Point3::new(0f32, 0.0, 0.0),
             Vector3::unit_z(),
         );
