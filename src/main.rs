@@ -139,8 +139,10 @@ fn main()
         out_depth: stv,
     };
 
+    let mut x = 5f32;
     let mut y = 5f32;
-    let mut z = 5f32;
+    let sensetivity = 0.2f32;
+
     let mut running = true;
     while running
     {
@@ -150,10 +152,10 @@ fn main()
                 glutin::WindowEvent::KeyboardInput { input, .. } => {
                     match input.virtual_keycode {
                         Some(glutin::VirtualKeyCode::Escape) => running = false,
-                        Some(glutin::VirtualKeyCode::W) => y = y + 0.1f32,
-                        Some(glutin::VirtualKeyCode::S) => y = y - 0.1f32,
-                        Some(glutin::VirtualKeyCode::A) => x = x + 0.1f32,
-                        Some(glutin::VirtualKeyCode::D) => x = x - 0.1f32,
+                        Some(glutin::VirtualKeyCode::W) => y = y - sensetivity,
+                        Some(glutin::VirtualKeyCode::S) => y = y + sensetivity,
+                        Some(glutin::VirtualKeyCode::A) => x = x + sensetivity,
+                        Some(glutin::VirtualKeyCode::D) => x = x - sensetivity,
                         _ => (),
                     }
                 },
