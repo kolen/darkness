@@ -90,22 +90,64 @@ fn main()
     let mut model_edn = String::new();
     model_file.read_to_string(&mut model_edn);
 
-    let mut vertices_data: &[f32];
-    let mut indices_data: &[f32];
+    let mut vertices_data: Vec<Vertex> = Vec::new();
+    let mut indices_data: Vec<u32> = Vec::new();
 
     let mut parser = edn::parser::Parser::new(&model_edn);
     match parser.read() {
       Some(dt) => match dt {
           Ok(edn::Value::Map(model)) => {
-              match model[&edn::Value::Keyword("indices".into())] {
+              match &model[&edn::Value::Keyword("indices".into())] {
                   edn::Value::Vector(indices) =>
                       indices_data = indices
-                      .into_itter()
-                      .map(|x| x as f32),
+                      .into_iter()
+                      .map(|x| if let edn::Value::Integer(i) = x { *i as u32 } else { panic!("Bad index") })
+                      .collect(),
                   _ => (),
               }
-              match model[&edn::Value::Keyword("vertices".into())] {
-                  edn::Value(vertices) => vertices_data = &vertices[..],
+              match &model[&edn::Value::Keyword("vertices".into())] {
+                  edn::Value::Vector(vertices) =>
+                      vertices_data = vertices
+                      .into_iter()
+                      .map(|edn_vertex| if let edn::Value::Vector(edn_vertex_components) = edn_vertex {
+                          let vertex_component1: Vec<f32>;
+                          if let edn::Value::Vector(vertex_component1_raw) = &edn_vertex_components[0] {
+                              vertex_component1 = vertex_component1_raw.into_iter().map( |edn_coord| {
+                                  if let edn::Value::Float(f) = edn_coord {
+                                      f.into_inner() as f32
+                                  } else {
+                                      panic!();
+                                  }
+                              }).collect();
+                          } else {
+                              panic!();
+                          }
+
+                          let vertex_component2: Vec<f32>;
+                          if let edn::Value::Vector(vertex_component2_raw) = &edn_vertex_components[1] {
+                              vertex_component2 = vertex_component2_raw.into_iter().map( |edn_coord| {
+                                  if let edn::Value::Float(f) = edn_coord {
+                                      f.into_inner() as f32
+                                  } else {
+                                      panic!();
+                                  }
+                              }).collect();
+                          } else {
+                              panic!();
+                          }
+                          assert_eq!(vertex_component1.len(), 3);
+                          assert_eq!(vertex_component2.len(), 2);
+
+                          let mut vertex_component1_a: [f32; 3] = [0f32; 3];
+                          let mut vertex_component2_a: [f32; 2] = [0f32; 2];
+
+                          vertex_component1_a.copy_from_slice(&vertex_component1[..]);
+                          vertex_component2_a.copy_from_slice(&vertex_component2[..]);
+
+                          Vertex::new(vertex_component1_a, vertex_component2_a)
+                      } else {
+                          panic!("Bad vertex");
+                      } ).collect(),
                   _ => (),
               }
           },
@@ -116,7 +158,7 @@ fn main()
 
     let dif_texture = load_texture(&mut factory, &include_bytes!("../res/wall.png")[..]).unwrap();
     let (vertex_buffer, slice) = factory
-        .create_vertex_buffer_with_slice(vertices_data, indices_data);
+        .create_vertex_buffer_with_slice(&vertices_data[..], &indices_data[..]);
     let sampler = factory.create_sampler_linear();
 
     let mut view = Matrix4::look_at(
