@@ -65,6 +65,45 @@ fn load_texture<R, F>(factory: &mut F, data: &[u8])
     Ok(view)
 }
 
+fn parse_vertex(input: &[edn::Value]) -> Vertex {
+    assert_eq!(2, input.len());
+    let vertex_component1: Vec<f32>;
+    if let edn::Value::Vector(vertex_component1_raw) = &input[0] {
+        vertex_component1 = vertex_component1_raw.into_iter().map( |edn_coord| {
+            if let edn::Value::Float(f) = edn_coord {
+                f.into_inner() as f32
+            } else {
+                panic!();
+            }
+        }).collect();
+    } else {
+        panic!("Not a vector: {:?}", &input[0]);
+    }
+
+    let vertex_component2: Vec<f32>;
+    if let edn::Value::Vector(vertex_component2_raw) = &input[1] {
+        vertex_component2 = vertex_component2_raw.into_iter().map( |edn_coord| {
+            if let edn::Value::Float(f) = edn_coord {
+                f.into_inner() as f32
+            } else {
+                panic!();
+            }
+        }).collect();
+    } else {
+        panic!("Not a vector: {:?}", &input[1]);
+    }
+    assert_eq!(vertex_component1.len(), 3);
+    assert_eq!(vertex_component2.len(), 2);
+
+    let mut vertex_component1_a: [f32; 3] = [0f32; 3];
+    let mut vertex_component2_a: [f32; 2] = [0f32; 2];
+
+    vertex_component1_a.copy_from_slice(&vertex_component1[..]);
+    vertex_component2_a.copy_from_slice(&vertex_component2[..]);
+
+    Vertex::new(vertex_component1_a, vertex_component2_a)
+}
+
 fn main()
 {
     let mut events_loop = glutin::EventsLoop::new();
@@ -106,48 +145,11 @@ fn main()
                   _ => (),
               }
               match &model[&edn::Value::Keyword("vertices".into())] {
-                  edn::Value::Vector(vertices) =>
+                  edn::Value::Vector(vertices) => {
                       vertices_data = vertices
-                      .into_iter()
-                      .map(|edn_vertex| if let edn::Value::Vector(edn_vertex_components) = edn_vertex {
-                          let vertex_component1: Vec<f32>;
-                          if let edn::Value::Vector(vertex_component1_raw) = &edn_vertex_components[0] {
-                              vertex_component1 = vertex_component1_raw.into_iter().map( |edn_coord| {
-                                  if let edn::Value::Float(f) = edn_coord {
-                                      f.into_inner() as f32
-                                  } else {
-                                      panic!();
-                                  }
-                              }).collect();
-                          } else {
-                              panic!("Not a vector: {:?}", edn_vertex);
-                          }
-
-                          let vertex_component2: Vec<f32>;
-                          if let edn::Value::Vector(vertex_component2_raw) = &edn_vertex_components[1] {
-                              vertex_component2 = vertex_component2_raw.into_iter().map( |edn_coord| {
-                                  if let edn::Value::Float(f) = edn_coord {
-                                      f.into_inner() as f32
-                                  } else {
-                                      panic!();
-                                  }
-                              }).collect();
-                          } else {
-                              panic!("Not a vector: {:?}", edn_vertex);
-                          }
-                          assert_eq!(vertex_component1.len(), 3);
-                          assert_eq!(vertex_component2.len(), 2);
-
-                          let mut vertex_component1_a: [f32; 3] = [0f32; 3];
-                          let mut vertex_component2_a: [f32; 2] = [0f32; 2];
-
-                          vertex_component1_a.copy_from_slice(&vertex_component1[..]);
-                          vertex_component2_a.copy_from_slice(&vertex_component2[..]);
-
-                          Vertex::new(vertex_component1_a, vertex_component2_a)
-                      } else {
-                          panic!("Bad vertex: {:?}", edn_vertex);
-                      } ).collect(),
+                      .chunks_exact(2)
+                          .map( |edn_vertex| parse_vertex(edn_vertex) ).collect()
+                  }
                   _ => (),
               }
           },
