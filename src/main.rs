@@ -120,7 +120,7 @@ fn main()
                                   }
                               }).collect();
                           } else {
-                              panic!();
+                              panic!("Not a vector: {:?}", edn_vertex);
                           }
 
                           let vertex_component2: Vec<f32>;
@@ -133,7 +133,7 @@ fn main()
                                   }
                               }).collect();
                           } else {
-                              panic!();
+                              panic!("Not a vector: {:?}", edn_vertex);
                           }
                           assert_eq!(vertex_component1.len(), 3);
                           assert_eq!(vertex_component2.len(), 2);
@@ -146,7 +146,7 @@ fn main()
 
                           Vertex::new(vertex_component1_a, vertex_component2_a)
                       } else {
-                          panic!("Bad vertex");
+                          panic!("Bad vertex: {:?}", edn_vertex);
                       } ).collect(),
                   _ => (),
               }
