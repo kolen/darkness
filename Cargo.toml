@@ -7,7 +7,7 @@ authors = ["cawcaw <dmitrygrach@gmail.com>"]
 time = "0.1.42"
 image = "0.21.0"
 cgmath = "0.17.0"
-edn = "*"
+edn = { git = "https://github.com/utkarshkukreti/edn.rs.git" }
 gfx = "0.17.1"
 gfx_core = "0.8.3"
 gfx_device_gl = "0.15.5"
